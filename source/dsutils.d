@@ -6,19 +6,6 @@ import std.conv;
 import std.datetime;
 import std.array;
 
-void main()
-{
-	
-	auto users = users();
-
-	foreach(u; users){
-		writef("User : %s\n", u.user);
-		writef("Terminal : %s\n", u.terminal);
-		writef("Host: %s\n", u.host);
-		writef("Started : %s\n", u.tv_sec);
-	}
-}
-
 
 /*
  * Everything about the connected users on the system
