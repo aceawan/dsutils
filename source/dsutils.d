@@ -1,10 +1,10 @@
+module dsutils;
+
 import std.stdio;
 import std.file;
 import std.conv;
 import std.datetime;
 import std.array;
-
-enum UTMP_FILE = "/var/run/utmp";
 
 void main()
 {
@@ -23,6 +23,8 @@ void main()
 /*
  * Everything about the connected users on the system
  */
+
+enum UTMP_FILE = "/var/run/utmp";
 
  struct Utmp
  {
