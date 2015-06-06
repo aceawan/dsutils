@@ -173,3 +173,48 @@ CPUTimes cpuTimes(){
 
 	return CPUTimes(float_times[0], float_times[1], float_times[2], float_times[3], float_times[4], float_times[5], float_times[6]);
 }
+
+CPUTimes[] cpuTimesPerCpu(){
+	import core.sys.posix.unistd;
+
+	File f = File("/proc/stat", "r");
+
+	string line = f.readln();
+
+	line = f.readln();
+	auto app = appender!(CPUTimes[])();
+
+	while(line !is null && startsWith(line, "cpu")){
+		auto float_times = map!(a => to!float(a) / sysconf(_SC_CLK_TCK) )(split(line, " ")[2..9]);
+		auto cpu_times = CPUTimes(float_times[0], float_times[1], float_times[2], float_times[3], float_times[4], float_times[5], float_times[6]);
+
+		app.put(cpu_times);
+		line = f.readln();
+	}
+
+	return app.data;
+}
+
+int nbCpu(bool logical=false){
+	import core.sys.posix.unistd;
+
+	int nbCpu = to!int(sysconf(_SC_NPROCESSORS_ONLN));
+
+	if(nbCpu > 0){
+		return nbCpu;
+	} 
+
+	else{
+		File f = File("/proc/cpuinfo", "r");
+		nbCpu = 0;
+		string line;
+
+		while((line = f.readln()) !is null){
+			if(startsWith(line, "processor")){
+				nbCpu++;
+			}
+		}
+
+		return nbCpu;
+	}
+}
