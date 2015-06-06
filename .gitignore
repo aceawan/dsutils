@@ -5,3 +5,4 @@ __dummy.html
 *.obj
 dsutils
 dub.selections.json
+libdsutils.a
