@@ -5,6 +5,7 @@ import std.file;
 import std.conv;
 import std.datetime;
 import std.array;
+import std.traits;
 import std.string;
 import std.algorithm;
 
@@ -127,7 +128,7 @@ SysTime bootTime(){
 	File f = File("/proc/stat", "r");
 
 	string line;
-	int result = 0;
+	int result = -1;
 
 	while((line = f.readln()) !is null){
 		if(startsWith(line, "btime")){
@@ -135,5 +136,40 @@ SysTime bootTime(){
 		}
 	}
 
-	return SysTime(unixTimeToStdTime(result));
+	if(result > 0){
+		return SysTime(unixTimeToStdTime(result));
+	}
+	else{
+		throw new Error("Couldn't read boot time");
+	}
+}
+
+/*
+* CPU Related
+ */
+
+struct CPUTimes{
+	float user; //Normal processes executing in user mode
+	float nice; //Niced processes executing in user mode
+	float system; //Processes executing in kernel mode
+	float idle; // Twiddling thumbs
+	float iowait; // waiting for I/O to complete
+	float irq; // Servicing interrupts
+	float softirq; // Servicing softirqs
+}
+
+CPUTimes cpuTimes(){
+	import core.sys.posix.unistd;
+
+	File f = File("/proc/stat", "r");
+
+	string line = f.readln();
+
+	if(!startsWith(line, "cpu")){
+		throw new Error("Couldn't read cpu times");
+	}
+
+	auto float_times = map!(a => to!float(a) / sysconf(_SC_CLK_TCK) )(split(line, " ")[2..9]);
+
+	return CPUTimes(float_times[0], float_times[1], float_times[2], float_times[3], float_times[4], float_times[5], float_times[6]);
 }
