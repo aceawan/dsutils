@@ -9,6 +9,10 @@ import std.traits;
 import std.string;
 import std.algorithm;
 
+import core.thread;
+
+CPUTimes _cpu_times;
+
 /*
  * Everything about the connected users on the system
  */
@@ -156,6 +160,10 @@ struct CPUTimes{
 	float iowait; // waiting for I/O to complete
 	float irq; // Servicing interrupts
 	float softirq; // Servicing softirqs
+
+	float sum(){
+		return user+nice+system+idle+iowait+irq+softirq;
+	}
 }
 
 CPUTimes cpuTimes(){
@@ -169,7 +177,7 @@ CPUTimes cpuTimes(){
 		throw new Error("Couldn't read cpu times");
 	}
 
-	auto float_times = map!(a => to!float(a) / sysconf(_SC_CLK_TCK) )(split(line, " ")[2..9]);
+	auto float_times = map!(a => to!float(a) / (sysconf(_SC_CLK_TCK) ))(split(line, " ")[2..9]);
 
 	return CPUTimes(float_times[0], float_times[1], float_times[2], float_times[3], float_times[4], float_times[5], float_times[6]);
 }
@@ -185,7 +193,7 @@ CPUTimes[] cpuTimesPerCpu(){
 	auto app = appender!(CPUTimes[])();
 
 	while(line !is null && startsWith(line, "cpu")){
-		auto float_times = map!(a => to!float(a) / sysconf(_SC_CLK_TCK) )(split(line, " ")[2..9]);
+		auto float_times = map!(a => to!float(a) / sysconf(_SC_CLK_TCK))(split(line, " ")[2..9]);
 		auto cpu_times = CPUTimes(float_times[0], float_times[1], float_times[2], float_times[3], float_times[4], float_times[5], float_times[6]);
 
 		app.put(cpu_times);
@@ -230,7 +238,40 @@ int nbCpu(bool logical=true){
 				}
 			}
 		}
-		
+
 		return to!int(cpus.length);
 	}
+}
+
+float cpuPercent(int interval = 0){
+	CPUTimes before;
+
+	if(interval > 0){
+		before = cpuTimes();
+	}
+	else{
+		if(!is(_cpu_times)){
+			_cpu_times = cpuTimes();
+			Thread.sleep(dur!("seconds")(1));
+		}
+		else{
+			Thread.sleep(dur!("seconds")(interval));
+		}
+
+		before = _cpu_times;
+	}
+
+	auto after = cpuTimes();
+
+	return calculate(before, after);
+}
+
+float calculate(CPUTimes t1, CPUTimes t2){
+	auto t1_all = t1.sum();
+	auto t1_busy = t1_all - t1.idle;
+
+	auto t2_all = t2.sum();
+	auto t2_busy = t2_all - t2.idle;
+
+	return ((t2_busy - t1_busy)/(t2_all - t1_all)) * 100;
 }
