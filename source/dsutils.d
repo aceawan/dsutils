@@ -1,6 +1,7 @@
 module dsutils;
 
 import std.stdio;
+import std.math;
 import std.file;
 import std.conv;
 import std.datetime;
@@ -153,6 +154,7 @@ SysTime bootTime(){
  */
 
 struct CPUTimes{
+
 	float user; //Normal processes executing in user mode
 	float nice; //Niced processes executing in user mode
 	float system; //Processes executing in kernel mode
@@ -163,6 +165,11 @@ struct CPUTimes{
 
 	float sum(){
 		return user+nice+system+idle+iowait+irq+softirq;
+	}
+
+	@property
+	bool empty(){
+		return (isNaN(user) && isNaN(nice) && isNaN(system) && isNaN(idle) && isNaN(iowait) && isNaN(irq) && isNaN(softirq));
 	}
 }
 
@@ -248,17 +255,19 @@ float cpuPercent(int interval = 0){
 
 	if(interval > 0){
 		before = cpuTimes();
+		Thread.sleep(dur!("seconds")(interval));
 	}
 	else{
-		if(!is(_cpu_times)){
+		if(_cpu_times.empty){
+			writeln("coinkou");
 			_cpu_times = cpuTimes();
 			Thread.sleep(dur!("seconds")(1));
+			before = _cpu_times;
 		}
 		else{
-			Thread.sleep(dur!("seconds")(interval));
+			before = _cpu_times;
+			_cpu_times = cpuTimes();
 		}
-
-		before = _cpu_times;
 	}
 
 	auto after = cpuTimes();
