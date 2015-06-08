@@ -195,26 +195,42 @@ CPUTimes[] cpuTimesPerCpu(){
 	return app.data;
 }
 
-int nbCpu(bool logical=false){
-	import core.sys.posix.unistd;
+int nbCpu(bool logical=true){
+	if(logical){
+		import core.sys.posix.unistd;
 
-	int nbCpu = to!int(sysconf(_SC_NPROCESSORS_ONLN));
+		int nbCpu = to!int(sysconf(_SC_NPROCESSORS_ONLN));
 
-	if(nbCpu > 0){
-		return nbCpu;
-	} 
+		if(nbCpu > 0){
+			return nbCpu;
+		} 
+
+		else{
+			File f = File("/proc/cpuinfo", "r");
+			nbCpu = 0;
+
+			foreach(line; f.byLine()){
+				if(startsWith(line, "processor")){
+					nbCpu++;
+				}
+			}
+
+			return nbCpu;
+		}
+	}
 
 	else{
 		File f = File("/proc/cpuinfo", "r");
-		nbCpu = 0;
-		string line;
+		char[] cpus;
 
-		while((line = f.readln()) !is null){
-			if(startsWith(line, "processor")){
-				nbCpu++;
+		foreach(line; f.byLine()){
+			if(startsWith(line, "physical id")){
+				if(!canFind(cpus, strip(split(line, ":")[1]))){
+					cpus ~= strip(split(line, ":")[1]);
+				}
 			}
 		}
-
-		return nbCpu;
+		
+		return to!int(cpus.length);
 	}
 }
