@@ -2,6 +2,7 @@ module dsutils;
 
 import std.stdio;
 import std.math;
+import std.range;
 import std.file;
 import std.conv;
 import std.datetime;
@@ -13,6 +14,7 @@ import std.algorithm;
 import core.thread;
 
 CPUTimes _cpu_times;
+CPUTimes[] _cpu_times_per_cpu;
 
 /*
  * Everything about the connected users on the system
@@ -200,7 +202,7 @@ CPUTimes[] cpuTimesPerCpu(){
 	auto app = appender!(CPUTimes[])();
 
 	while(line !is null && startsWith(line, "cpu")){
-		auto float_times = map!(a => to!float(a) / sysconf(_SC_CLK_TCK))(split(line, " ")[2..9]);
+		auto float_times = map!(a => to!float(a) / (sysconf(_SC_CLK_TCK)) )(split(line, " ")[1..8]);
 		auto cpu_times = CPUTimes(float_times[0], float_times[1], float_times[2], float_times[3], float_times[4], float_times[5], float_times[6]);
 
 		app.put(cpu_times);
@@ -259,7 +261,6 @@ float cpuPercent(int interval = 0){
 	}
 	else{
 		if(_cpu_times.empty){
-			writeln("coinkou");
 			_cpu_times = cpuTimes();
 			Thread.sleep(dur!("seconds")(1));
 			before = _cpu_times;
@@ -273,6 +274,36 @@ float cpuPercent(int interval = 0){
 	auto after = cpuTimes();
 
 	return calculate(before, after);
+}
+
+float[] cpuPercentPerCpu(int interval = 0){
+	CPUTimes[] before;
+
+	if(interval > 0){
+		before = cpuTimesPerCpu();
+		Thread.sleep(dur!("seconds")(interval));
+	}
+
+	else{
+		if(_cpu_times_per_cpu.length == 0){
+			_cpu_times_per_cpu = cpuTimesPerCpu();
+			Thread.sleep(dur!("seconds")(2));
+			before = _cpu_times_per_cpu;
+		}
+		else{
+			before = _cpu_times_per_cpu;
+			_cpu_times_per_cpu = cpuTimesPerCpu();
+		}
+	}
+
+	auto after = cpuTimesPerCpu();
+	auto app = appender!(float[])();
+
+	foreach(cpu; zip(before, after)){
+		app.put(calculate(cpu[0], cpu[1]));
+	}
+
+	return app.data;
 }
 
 float calculate(CPUTimes t1, CPUTimes t2){
