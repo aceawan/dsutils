@@ -1,3 +1,6 @@
+/**
+ * Authors: Quentin Ladeveze, ladeveze.quentin@openmailbox.org
+*/
 module dsutils;
 
 import std.stdio;
@@ -21,6 +24,11 @@ CPUTimes[] _cpu_times_per_cpu;
  */
 enum UTMP_FILE = "/var/run/utmp";
 
+/**
+ * A more human structure for Utmp
+ * A utmp struct is an entry in UTMP_FILE
+ * and represent a connection from an user.
+ */
 struct Utmp
 {
     short type;
@@ -38,6 +46,10 @@ struct Utmp
     char[20] unused;
 }
 
+/**
+ * Copy of the C structure you can found in utmp.h
+ * Used to retrieve the structures in /var/run/utmp
+ */
 struct UtmpC
 {
     short ut_type;
@@ -55,6 +67,10 @@ struct UtmpC
     char[20] __glibc_reserved;
 }
 
+/**
+ * This is for transform the raw data in /var/run/utmp
+ * into a UtmpC struct.
+ */
 union UnionUtmp
 {
     ubyte[UtmpC.sizeof] byteArray;
@@ -62,16 +78,16 @@ union UnionUtmp
 }
 
 enum{
-    RUN_LVL=1,
-    BOOT_TIME=2,
-    NEW_TIME=3,
-    OLD_TIME=4,
-    INIT_PROCESS=5,
-    LOGIN_PROCESS=6,
-    USER_PROCESS=7,
-    DEAD_PROCESS=8,
+    INIT_PROCESS=5, // Process spawned by the init process
+    LOGIN_PROCESS=6, // Session leader of a logged user
+    USER_PROCESS=7, // Normal process
+    DEAD_PROCESS=8, // Terminated process
 }
 
+/*
+* List all the users connected to the system.
+* Returns: A list of Utmp structs.
+ */
 Utmp[] users(){
     auto buffer = cast(ubyte[]) read(UTMP_FILE);
 
@@ -115,13 +131,19 @@ Utmp[] users(){
     return app.data;
 }
 
+/**
+ * Convert a int array to a char array
+ * Params:
+ * 		arr = an array of int
+ * Returns : an array of char
+ */
 char[] intarrToCharr(int[] arr){
     char[] result;
 
     result.length = arr.length;
 
     foreach(i, e; arr){
-	result[i] = to!char(e);
+		result[i] = to!char(e);
     }
 
     return result;
@@ -131,6 +153,10 @@ char[] intarrToCharr(int[] arr){
 * Uptime
 */
 
+/**
+ * Return the last boot's time.
+ * Returns: a Systime.
+ */
 SysTime bootTime(){
 	File f = File("/proc/stat", "r");
 
@@ -152,9 +178,19 @@ SysTime bootTime(){
 }
 
 /*
+* Disk space related
+ */
+
+
+
+/*
 * CPU Related
  */
 
+/**
+ * A struct that contains all the times you can find in a line
+ * of /proc/stat.
+ */
 struct CPUTimes{
 
 	float user; //Normal processes executing in user mode
@@ -175,6 +211,9 @@ struct CPUTimes{
 	}
 }
 
+/**
+ * Returns: the system-wide cpu times.
+ */
 CPUTimes cpuTimes(){
 	import core.sys.posix.unistd;
 
@@ -191,6 +230,10 @@ CPUTimes cpuTimes(){
 	return CPUTimes(float_times[0], float_times[1], float_times[2], float_times[3], float_times[4], float_times[5], float_times[6]);
 }
 
+/**
+ * The first cpuTime is for cpu0, the second for cpu1 etc ...
+ * Returns: a list of cpu_times
+ */
 CPUTimes[] cpuTimesPerCpu(){
 	import core.sys.posix.unistd;
 
@@ -212,6 +255,12 @@ CPUTimes[] cpuTimesPerCpu(){
 	return app.data;
 }
 
+/**
+ * Returns: number of cpus
+ * Params: 
+ * 		logical = boolean to tell the function if you
+ * 		want to count the physicial or logicals cpus.
+ */
 int nbCpu(bool logical=true){
 	if(logical){
 		import core.sys.posix.unistd;
