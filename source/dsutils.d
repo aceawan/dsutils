@@ -367,7 +367,7 @@ float calculate(CPUTimes t1, CPUTimes t2){
 
 /**
  * Virtual Memory related
- * DOES NOT WORK 
+ * should work now
  */
 
 /**
@@ -392,20 +392,20 @@ Svmem mem(){
 	Svmem memory;
 	int i;
 
-	for(i=0; i<4; i++){
+	for(i=0; i<5; i++){
 		if(i == 0){ //MemTotal
 			memory.total = memTreat(line);
 		}
 		if(i == 1){ // MemFree
 			memory.free = memTreat(line);
 		}
-		if(i == 2){ //Buffer					
+		if(i == 3){ //Buffer					
 			memory.buffer = memTreat(line);
 		}
-		if(i == 3){ //Cached
+		if(i == 4){ //Cached
 			memory.cached = memTreat(line);
 		}
-		f.readln();
+		line = f.readln();
 	}
 
 	memory.freeTotal = memory.free + memory.buffer + memory.cached;
@@ -424,12 +424,7 @@ int memTreat(string line){
 	auto infoTmp = split(line, ":");
 	auto infoQuantity = split(infoTmp[1]);
 	auto result = infoQuantity[0];
-	auto found = true;
-	if(found){
-		return to!(int)(result);
-	} else {
-		throw new Error("Property not found !");
-	}
+	return to!int(result);
 }
 
 /**
@@ -450,7 +445,7 @@ int toMB(int value){
  * Returns: a percentage
  */
 int toPercent(Svmem mem, int value){
-	return (value / mem.total * 100);		
+	return value*100 / mem.total;		
 }
 
 /**
