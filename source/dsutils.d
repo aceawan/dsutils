@@ -456,3 +456,60 @@ int toPercent(Svmem mem, int value){
 /**
  * Disk 
  */
+
+/**
+ * Represent a partition mounted on the system
+ */
+struct Partition{
+	string device; // path of the device
+	string mountPoint; // mountpoint of the partition
+	string fstype; // File system type
+	string opts; // Options of mounting
+}
+
+/**
+ * Get all the partition mounted on the system
+ * Params:
+ * 		all = if false, returns only physicals devices
+ * 		if true, returns all the devices
+ * Returns: a list of partition
+ */
+Partition[] diskPartions(bool all = false){
+	File f = File("/proc/filesystems");
+	auto dev_fs = appender!(string[])();
+
+	foreach(line; f.byLine()){
+		if(!startsWith(line, "nodev")){
+			dev_fs.put(line.strip);
+		}
+	}
+
+	f = File("/etc/mtab");
+
+	auto parts = appender!(Partition[])();
+
+	foreach(line; f.byLine()){
+		auto splitted_line = line.split(" ");
+
+		if(!all){
+			if(dev_fs.canFind(splitted_line[2])){
+				Partition p = Partition();
+				p.device = splitted_line[0];
+				p.mountPoint = splitted_line[1];
+				p.fstype = splitted_line[2];
+				p.opts = splitted_line[3];
+				parts.put(p);
+			}
+		}
+		else{
+				Partition p = Partition();
+				p.device = splitted_line[0];
+				p.mountPoint = splitted_line[1];
+				p.fstype = splitted_line[2];
+				p.opts = splitted_line[3];
+				parts.put(p);		
+		}
+	}
+
+	return parts;
+}
