@@ -1,6 +1,6 @@
 /**
  * Authors: Quentin Ladeveze, ladeveze.quentin@openmailbox.org
-*/
+ */
 module dsutils;
 
 import std.stdio;
@@ -67,6 +67,17 @@ struct UtmpC
     char[20] __glibc_reserved;
 }
 
+struct Svmem{
+	int total;
+	int free;
+	int buffer;
+	int cached;
+	int freeTotal;
+	int inUse;
+}
+
+
+
 /**
  * This is for transform the raw data in /var/run/utmp
  * into a UtmpC struct.
@@ -85,8 +96,8 @@ enum{
 }
 
 /*
-* List all the users connected to the system.
-* Returns: A list of Utmp structs.
+ * List all the users connected to the system.
+ * Returns: A list of Utmp structs.
  */
 Utmp[] users(){
     auto buffer = cast(ubyte[]) read(UTMP_FILE);
@@ -97,34 +108,34 @@ Utmp[] users(){
     auto app = appender!(Utmp[])();
 
     while(i+UtmpC.sizeof < buffer.length){
-	ubyte[UtmpC.sizeof] one_buf = buffer[i..i+UtmpC.sizeof];
-	auto u = UnionUtmp(one_buf);
+		ubyte[UtmpC.sizeof] one_buf = buffer[i..i+UtmpC.sizeof];
+		auto u = UnionUtmp(one_buf);
 
-	if(u.utmp.ut_type == USER_PROCESS){
+		if(u.utmp.ut_type == USER_PROCESS){
 
-	    Utmp user = Utmp();
+			Utmp user = Utmp();
 
-	    user.type = u.utmp.ut_type;
-	    user.pid = u.utmp.ut_pid;
-	    user.terminal = to!string(u.utmp.ut_line);
-	    user.id = to!string(u.utmp.ut_id);
-	    user.user = to!string(u.utmp.ut_user);
-	    user.host = to!string(u.utmp.ut_host);
-	    user.termination = u.utmp.e_termination;
-	    user.exit = u.utmp.e_exit;
-	    user.session = u.utmp.ut_session;
+			user.type = u.utmp.ut_type;
+			user.pid = u.utmp.ut_pid;
+			user.terminal = to!string(u.utmp.ut_line);
+			user.id = to!string(u.utmp.ut_id);
+			user.user = to!string(u.utmp.ut_user);
+			user.host = to!string(u.utmp.ut_host);
+			user.termination = u.utmp.e_termination;
+			user.exit = u.utmp.e_exit;
+			user.session = u.utmp.ut_session;
 
-	    user.tv_sec = SysTime(unixTimeToStdTime(u.utmp.tv_sec));
+			user.tv_sec = SysTime(unixTimeToStdTime(u.utmp.tv_sec));
 
-	    user.tv_usec = u.utmp.tv_usec;
-	    user.addr = intarrToCharr(u.utmp.ut_addr_v6);
-	    user.unused = u.utmp.__glibc_reserved;
+			user.tv_usec = u.utmp.tv_usec;
+			user.addr = intarrToCharr(u.utmp.ut_addr_v6);
+			user.unused = u.utmp.__glibc_reserved;
 
-	    app.put(user);
+			app.put(user);
 
-	}
+		}
 
-	i += UtmpC.sizeof;
+		i += UtmpC.sizeof;
 
     }
 
@@ -150,8 +161,8 @@ char[] intarrToCharr(int[] arr){
 }
 
 /*
-* Uptime
-*/
+ * Uptime
+ */
 
 /**
  * Return the last boot's time.
@@ -178,13 +189,13 @@ SysTime bootTime(){
 }
 
 /*
-* Disk space related
+ * Disk space related
  */
 
 
 
 /*
-* CPU Related
+ * CPU Related
  */
 
 /**
@@ -363,4 +374,51 @@ float calculate(CPUTimes t1, CPUTimes t2){
 	auto t2_busy = t2_all - t2.idle;
 
 	return ((t2_busy - t1_busy)/(t2_all - t1_all)) * 100;
+}
+
+Svmem mem(){
+	File f = File("/proc/meminfo", "r");
+	string line = f.readln();
+	Svmem memory;
+	int i;
+	foreach(i=0; i<4; i++){
+		if(i == 0){ //MemTotal
+			memory.total = memTreat(line);
+		}
+		if(i == 1){ // MemFree
+			memory.free = memTreat(line);
+		}
+		if(i == 2){ //Buffer					
+			memory.buffer = memTreat(line);
+		}
+		if(i == 3){ //Cached
+			memory.cached = memTreat(line);
+		}
+		f.readln();
+	}
+	memory.freeTotal = memory.free + memory.buffer + memory.cached;
+	memory.inUse = memory.total - memory.freeTotal;		
+}
+
+int memTreat(string line){
+	auto infoTmp[] = split(line, ":");
+	auto infoQuantity[] = split(memTmp[1]);
+	result = memQuantity[0];
+	found = true;
+	if(found){
+		return result;
+	} else {
+		throw new Error("Property not found !");
+	}
+}
+
+int toMO(int value){
+	assert(value != null);
+	return value/1024;
+}
+
+int toPercent(Svmem mem, int value){
+	assert(mem != null);
+	assert(value != null);
+	return floor((value / mem.total * 100));		
 }
