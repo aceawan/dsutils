@@ -67,17 +67,6 @@ struct UtmpC
     char[20] __glibc_reserved;
 }
 
-struct Svmem{
-	int total;
-	int free;
-	int buffer;
-	int cached;
-	int freeTotal;
-	int inUse;
-}
-
-
-
 /**
  * This is for transform the raw data in /var/run/utmp
  * into a UtmpC struct.
@@ -376,12 +365,33 @@ float calculate(CPUTimes t1, CPUTimes t2){
 	return ((t2_busy - t1_busy)/(t2_all - t1_all)) * 100;
 }
 
+/**
+ * Virtual Memory related
+ */
+
+/**
+ * Svmem contains informations about
+ * virtual memory.
+ */
+struct Svmem{
+	int total;
+	int free;
+	int buffer;
+	int cached;
+	int freeTotal;
+	int inUse;
+}
+
+/**
+ * Returns: a Sysmem structure
+ */
 Svmem mem(){
 	File f = File("/proc/meminfo", "r");
 	string line = f.readln();
 	Svmem memory;
 	int i;
-	foreach(i=0; i<4; i++){
+
+	for(i=0; i<4; i++){
 		if(i == 0){ //MemTotal
 			memory.total = memTreat(line);
 		}
@@ -396,15 +406,24 @@ Svmem mem(){
 		}
 		f.readln();
 	}
+
 	memory.freeTotal = memory.free + memory.buffer + memory.cached;
-	memory.inUse = memory.total - memory.freeTotal;		
+	memory.inUse = memory.total - memory.freeTotal;	
+
+	return memory;	
 }
 
+/**
+ * Parse a line from /proc/meminfo
+ * Params: 
+ * 		line = a line of /proc/meminfo
+ * Returns: the value in this line
+ */
 int memTreat(string line){
-	auto infoTmp[] = split(line, ":");
-	auto infoQuantity[] = split(memTmp[1]);
-	result = memQuantity[0];
-	found = true;
+	auto infoTmp = split(line, ":");
+	auto infoQuantity = split(infoTmp[1]);
+	auto result = infoQuantity[0];
+	auto found = true;
 	if(found){
 		return result;
 	} else {
@@ -412,11 +431,24 @@ int memTreat(string line){
 	}
 }
 
-int toMO(int value){
+/**
+ * Convert a value from /proc/meminfo in mega-bytes
+ * Params: a value ton convert
+ * Returns: the converted value
+ */
+int toMB(int value){
 	assert(value != null);
 	return value/1024;
 }
 
+/**
+ * Convert a value from /proc/meminfo in a percentage
+ * of the total memory
+ * Params:
+ * 		mem = a Svmem structure
+ * 		value = a value to convert
+ * Returns: a percentage
+ */
 int toPercent(Svmem mem, int value){
 	assert(mem != null);
 	assert(value != null);
