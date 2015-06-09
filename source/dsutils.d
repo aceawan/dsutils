@@ -425,7 +425,7 @@ int memTreat(string line){
 	auto result = infoQuantity[0];
 	auto found = true;
 	if(found){
-		return result;
+		return to!(int)(result);
 	} else {
 		throw new Error("Property not found !");
 	}
@@ -437,7 +437,6 @@ int memTreat(string line){
  * Returns: the converted value
  */
 int toMB(int value){
-	assert(value != null);
 	return value/1024;
 }
 
@@ -450,7 +449,5 @@ int toMB(int value){
  * Returns: a percentage
  */
 int toPercent(Svmem mem, int value){
-	assert(mem != null);
-	assert(value != null);
-	return floor((value / mem.total * 100));		
+	return (value / mem.total * 100);		
 }
