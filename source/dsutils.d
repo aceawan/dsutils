@@ -469,13 +469,13 @@ struct Partition{
  * 		if true, returns all the devices
  * Returns: a list of partition
  */
-Partition[] diskPartions(bool all = false){
+Partition[] diskPartitions(bool all = false){
 	File f = File("/proc/filesystems");
 	auto dev_fs = appender!(string[])();
 
 	foreach(line; f.byLine()){
 		if(!startsWith(line, "nodev")){
-			dev_fs.put(line.strip);
+			dev_fs.put(line.strip.idup);
 		}
 	}
 
@@ -487,24 +487,24 @@ Partition[] diskPartions(bool all = false){
 		auto splitted_line = line.split(" ");
 
 		if(!all){
-			if(dev_fs.canFind(splitted_line[2])){
+			if(dev_fs.data.canFind(splitted_line[2])){
 				Partition p = Partition();
-				p.device = splitted_line[0];
-				p.mountPoint = splitted_line[1];
-				p.fstype = splitted_line[2];
-				p.opts = splitted_line[3];
+				p.device = splitted_line[0].idup;
+				p.mountPoint = splitted_line[1].idup;
+				p.fstype = splitted_line[2].idup;
+				p.opts = splitted_line[3].idup;
 				parts.put(p);
 			}
 		}
 		else{
 				Partition p = Partition();
-				p.device = splitted_line[0];
-				p.mountPoint = splitted_line[1];
-				p.fstype = splitted_line[2];
-				p.opts = splitted_line[3];
+				p.device = splitted_line[0].idup;
+				p.mountPoint = splitted_line[1].idup;
+				p.fstype = splitted_line[2].idup;
+				p.opts = splitted_line[3].idup;
 				parts.put(p);		
 		}
 	}
 
-	return parts;
+	return parts.data;
 }
