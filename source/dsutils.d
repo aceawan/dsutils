@@ -367,6 +367,7 @@ float calculate(CPUTimes t1, CPUTimes t2){
 
 /**
  * Virtual Memory related
+ * DOES NOT WORK 
  */
 
 /**
@@ -454,3 +455,7 @@ int toPercent(Svmem mem, int value){
 	assert(value != null);
 	return floor((value / mem.total * 100));		
 }
+
+/**
+ * Disk 
+ */
