@@ -8,6 +8,7 @@ import std.math;
 import std.range;
 import std.file;
 import std.conv;
+import std.typecons;
 import std.datetime;
 import std.array;
 import std.traits;
@@ -374,14 +375,7 @@ float calculate(CPUTimes t1, CPUTimes t2){
  * Svmem contains informations about
  * virtual memory.
  */
-struct Svmem{
-	int total;
-	int free;
-	int buffer;
-	int cached;
-	int freeTotal;
-	int inUse;
-}
+alias Svmem = Tuple!(int, "total", int, "free", int, "buffer", int, "cached", int, "freeTotal", int, "inUse");
 
 /**
  * Returns: a Sysmem structure
@@ -455,12 +449,7 @@ int toPercent(Svmem mem, int value){
 /**
  * Represent a partition mounted on the system
  */
-struct Partition{
-	string device; // path of the device
-	string mountPoint; // mountpoint of the partition
-	string fstype; // File system type
-	string opts; // Options of mounting
-}
+alias Partition = Tuple!(string, "device", string, "mountPoint", string, "fstype", string, "opts");
 
 /**
  * Get all the partition mounted on the system
@@ -507,4 +496,28 @@ Partition[] diskPartitions(bool all = false){
 	}
 
 	return parts.data;
+}
+
+/**
+ * Informations about the disk usage
+ */
+alias DiskUsage = Tuple!(ulong, "total", ulong, "used", ulong, "free", float, "percent"); 
+
+DiskUsage diskUsage(string path){
+	import core.sys.posix.sys.statvfs;
+
+	auto buf = statvfs_t();
+
+	if(statvfs(path.ptr, &buf)){
+		throw new Error("Couldn't call statvfs");
+	}
+
+	auto res = DiskUsage();
+
+	res.total = (buf.f_blocks * buf.f_frsize);
+	res.used = (buf.f_blocks - buf.f_bfree) * buf.f_frsize;
+	res.free = (buf.f_bavail * buf.f_frsize);
+	res.percent = (to!float(res.used) / to!float(res.total)) * 100.0;
+
+	return res;
 }
