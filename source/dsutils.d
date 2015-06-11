@@ -378,7 +378,7 @@ float calculate(CPUTimes t1, CPUTimes t2){
 alias Svmem = Tuple!(int, "total", int, "free", int, "buffer", int, "cached", int, "freeTotal", int, "inUse");
 
 /**
- * Returns: a Sysmem structure
+ * Returns: a Svmem tuple
  */
 Svmem mem(){
 	File f = File("/proc/meminfo", "r");
@@ -434,7 +434,7 @@ int toMB(int value){
  * Convert a value from /proc/meminfo in a percentage
  * of the total memory
  * Params:
- * 		mem = a Svmem structure
+ * 		mem = a Svmem tuple
  * 		value = a value to convert
  * Returns: a percentage
  */
