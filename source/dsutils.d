@@ -14,6 +14,7 @@ import std.array;
 import std.traits;
 import std.string;
 import std.algorithm;
+import std.uni;
 
 import core.thread;
 
@@ -498,6 +499,7 @@ Partition[] diskPartitions(bool all = false){
 	return parts.data;
 }
 
+
 /**
  * Informations about the disk usage
  */
@@ -520,4 +522,21 @@ DiskUsage diskUsage(string path){
 	res.percent = (to!float(res.used) / to!float(res.total)) * 100.0;
 
 	return res;
+}
+
+/**
+ * pids
+ */
+
+/**
+ *Get all the pid currently active on the system
+ * Return a list of the pids
+ */
+int[] pids(){
+	int[] pidArray;
+	foreach(dir; dirEntries("/proc/", "[123456789]*", SpanMode.shallow)){
+		auto pid = dir.name.split("/");
+		pidArray ~= to!int(pid[2]);
+	}
+	return pidArray;
 }
