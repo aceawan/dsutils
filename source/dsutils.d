@@ -439,7 +439,7 @@ int toMB(int value){
  * 		value = a value to convert
  * Returns: a percentage
  */
-int toPercent(Svmem mem, int value){
+int memToPercent(Svmem mem, int value){
 	return value*100 / mem.total;
 }
 
@@ -586,3 +586,42 @@ int[] pids(){
 	}
 	return pidArray;
 }
+
+/**
+ * brightness
+ */
+
+alias Bright = Tuple!(int, "max", int, "actual");
+
+/**
+ *Get all the brightness
+ * Params: folder in /sys/class/backlight/ where dsutils should look
+ * Returns: the raw brightness
+ */
+Bright brightness(string folder){
+	Bright bri;
+	string path = "/sys/class/backlight/" ~ folder;
+	File bMax = File(path ~ "/max_brightness", "r");
+	string lineMax = bMax.readln();
+	bri.max = to!int(strip(lineMax));
+
+	File bActual = File(path ~ "/brightness", "r");
+	string lineActual = bActual.readln();
+	bri.actual = to!int(strip(lineActual));
+	return bri;
+}
+
+/**
+ * Convert a value from /sys/class/backlight/ in a percentage
+ * of the brightness
+ * Params:
+ * 		bri = a Bright tuple
+ * 		value = a value to convert
+ * Returns: a percentage
+ */
+int brightnessToPercent(Bright bri, int value){
+	assert(bri.max >= 0);
+	assert(bri.actual >= 0);
+	return value*100 / bri.max;
+}
+
