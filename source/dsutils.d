@@ -33,19 +33,19 @@ enum UTMP_FILE = "/var/run/utmp";
  */
 struct Utmp
 {
-    short type;
-    int pid;
-    string terminal;
-    string id;
-    string user;
-    string host;
-    short termination;
-    short exit;
-    int session;
-    SysTime tv_sec;
-    int tv_usec;
-    char[4] addr;
-    char[20] unused;
+	short type;
+	int pid;
+	string terminal;
+	string id;
+	string user;
+	string host;
+	short termination;
+	short exit;
+	int session;
+	SysTime tv_sec;
+	int tv_usec;
+	char[4] addr;
+	char[20] unused;
 }
 
 /**
@@ -54,19 +54,19 @@ struct Utmp
  */
 struct UtmpC
 {
-    short ut_type;
-    int ut_pid;
-    char[32] ut_line;
-    char[4] ut_id;
-    char[32] ut_user;
-    char[256] ut_host;
-    short e_termination;
-    short e_exit;
-    int ut_session;
-    int tv_sec;
-    int tv_usec;
-    int[4] ut_addr_v6;
-    char[20] __glibc_reserved;
+	short ut_type;
+	int ut_pid;
+	char[32] ut_line;
+	char[4] ut_id;
+	char[32] ut_user;
+	char[256] ut_host;
+	short e_termination;
+	short e_exit;
+	int ut_session;
+	int tv_sec;
+	int tv_usec;
+	int[4] ut_addr_v6;
+	char[20] __glibc_reserved;
 }
 
 /**
@@ -75,15 +75,15 @@ struct UtmpC
  */
 union UnionUtmp
 {
-    ubyte[UtmpC.sizeof] byteArray;
-    UtmpC utmp;
+	ubyte[UtmpC.sizeof] byteArray;
+	UtmpC utmp;
 }
 
 enum{
-    INIT_PROCESS=5, // Process spawned by the init process
-    LOGIN_PROCESS=6, // Session leader of a logged user
-    USER_PROCESS=7, // Normal process
-    DEAD_PROCESS=8, // Terminated process
+	INIT_PROCESS=5, // Process spawned by the init process
+	LOGIN_PROCESS=6, // Session leader of a logged user
+	USER_PROCESS=7, // Normal process
+	DEAD_PROCESS=8, // Terminated process
 }
 
 /*
@@ -91,14 +91,14 @@ enum{
  * Returns: A list of Utmp structs.
  */
 Utmp[] users(){
-    auto buffer = cast(ubyte[]) read(UTMP_FILE);
+	auto buffer = cast(ubyte[]) read(UTMP_FILE);
 
-    short i = 0;
-    Utmp[] users;
+	short i = 0;
+	Utmp[] users;
 
-    auto app = appender!(Utmp[])();
+	auto app = appender!(Utmp[])();
 
-    while(i+UtmpC.sizeof < buffer.length){
+	while(i+UtmpC.sizeof < buffer.length){
 		ubyte[UtmpC.sizeof] one_buf = buffer[i..i+UtmpC.sizeof];
 		auto u = UnionUtmp(one_buf);
 
@@ -128,9 +128,9 @@ Utmp[] users(){
 
 		i += UtmpC.sizeof;
 
-    }
+	}
 
-    return app.data;
+	return app.data;
 }
 
 /**
@@ -140,15 +140,15 @@ Utmp[] users(){
  * Returns : an array of char
  */
 char[] intarrToCharr(int[] arr){
-    char[] result;
+	char[] result;
 
-    result.length = arr.length;
+	result.length = arr.length;
 
-    foreach(i, e; arr){
+	foreach(i, e; arr){
 		result[i] = to!char(e);
-    }
+	}
 
-    return result;
+	return result;
 }
 
 /*
@@ -208,9 +208,9 @@ struct CPUTimes{
 	}
 
 	@property
-	bool empty(){
-		return (isNaN(user) && isNaN(nice) && isNaN(system) && isNaN(idle) && isNaN(iowait) && isNaN(irq) && isNaN(softirq));
-	}
+		bool empty(){
+			return (isNaN(user) && isNaN(nice) && isNaN(system) && isNaN(idle) && isNaN(iowait) && isNaN(irq) && isNaN(softirq));
+		}
 }
 
 /**
@@ -259,7 +259,7 @@ CPUTimes[] cpuTimesPerCpu(){
 
 /**
  * Returns: number of cpus
- * Params: 
+ * Params:
  * 		logical = boolean to tell the function if you
  * 		want to count the physicial or logicals cpus.
  */
@@ -271,7 +271,7 @@ int nbCpu(bool logical=true){
 
 		if(nbCpu > 0){
 			return nbCpu;
-		} 
+		}
 
 		else{
 			File f = File("/proc/cpuinfo", "r");
@@ -394,7 +394,7 @@ Svmem mem(){
 		if(i == 1){ // MemFree
 			memory.free = memTreat(line);
 		}
-		if(i == 3){ //Buffer					
+		if(i == 3){ //Buffer
 			memory.buffer = memTreat(line);
 		}
 		if(i == 4){ //Cached
@@ -404,14 +404,14 @@ Svmem mem(){
 	}
 
 	memory.freeTotal = memory.free + memory.buffer + memory.cached;
-	memory.inUse = memory.total - memory.freeTotal;	
+	memory.inUse = memory.total - memory.freeTotal;
 
-	return memory;	
+	return memory;
 }
 
 /**
  * Parse a line from /proc/meminfo
- * Params: 
+ * Params:
  * 		line = a line of /proc/meminfo
  * Returns: the value in this line
  */
@@ -440,11 +440,11 @@ int toMB(int value){
  * Returns: a percentage
  */
 int toPercent(Svmem mem, int value){
-	return value*100 / mem.total;		
+	return value*100 / mem.total;
 }
 
 /**
- * Disk 
+ * Disk
  */
 
 /**
@@ -487,12 +487,12 @@ Partition[] diskPartitions(bool all = false){
 			}
 		}
 		else{
-				Partition p = Partition();
-				p.device = splitted_line[0].idup;
-				p.mountPoint = splitted_line[1].idup;
-				p.fstype = splitted_line[2].idup;
-				p.opts = splitted_line[3].idup;
-				parts.put(p);		
+			Partition p = Partition();
+			p.device = splitted_line[0].idup;
+			p.mountPoint = splitted_line[1].idup;
+			p.fstype = splitted_line[2].idup;
+			p.opts = splitted_line[3].idup;
+			parts.put(p);
 		}
 	}
 
@@ -503,7 +503,7 @@ Partition[] diskPartitions(bool all = false){
 /**
  * Informations about the disk usage
  */
-alias DiskUsage = Tuple!(ulong, "total", ulong, "used", ulong, "free", float, "percent"); 
+alias DiskUsage = Tuple!(ulong, "total", ulong, "used", ulong, "free", float, "percent");
 
 DiskUsage diskUsage(string path){
 	import core.sys.posix.sys.statvfs;
@@ -522,6 +522,52 @@ DiskUsage diskUsage(string path){
 	res.percent = (to!float(res.used) / to!float(res.total)) * 100.0;
 
 	return res;
+}
+
+/**
+  * Io stats about the disk
+  */
+alias DiskStats = Tuple!(int, "read_count", int, "write_count", int, "read_bytes", int, "write_bytes", int, "read_time", int, "write_time");
+
+enum SECTORSIZE = 512;
+
+DiskStats diskIoCounters(){
+	auto parts = appender!(string[])();
+	File f = File("/proc/partitions");
+
+	foreach(line; f.byLine()){
+		line = line.squeeze(" ");
+		if(line != "" && !startsWith(line, "major") && isNumber(line[$-1]))
+			parts.put(line.split(" ")[$-1].idup);
+	}
+
+	auto result = DiskStats();
+
+	f = File("/proc/diskstats");
+
+	foreach(line; f.byLine()){
+		auto s_line = line.squeeze(" ").split(" ")[1..$-1];
+
+		writeln(s_line);
+		if(parts.data.canFind(s_line[2].idup)){
+			if(line.length > 7){
+				result.read_count += to!int(s_line[3]);
+				result.write_count += to!int(s_line[7]);
+				result.read_bytes += to!int(s_line[5]) * SECTORSIZE;
+				result.write_bytes += to!int(s_line[9]) * SECTORSIZE;
+				result.read_time += to!int(s_line[6]);
+				result.write_time += to!int(s_line[10]);
+			}
+			else{
+				result.read_count += to!int(s_line[3]);
+				result.write_count += to!int(s_line[5]);
+				result.read_bytes += to!int(s_line[4]) * SECTORSIZE;
+				result.write_bytes += to!int(s_line[6]) * SECTORSIZE;
+			}
+		}
+	}
+
+	return result;
 }
 
 /**
