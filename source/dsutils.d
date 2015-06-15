@@ -369,7 +369,6 @@ float calculate(CPUTimes t1, CPUTimes t2){
 
 /**
  * Virtual Memory related
- * should work now
  */
 
 /**
@@ -443,7 +442,58 @@ int memToPercent(Svmem mem, int value){
 	return value*100 / mem.total;
 }
 
-/**
+/*
+ * Swap
+ */
+alias Swap = Tuple!(long, "total", long, "used", long, "free", int, "percent", long, "sin", long, "sout");
+
+Swap swapMemory(){
+	import core.sys.linux.sys.sysinfo;
+
+	sysinfo_ infos;
+
+	sysinfo(&infos);
+
+	Swap result = Swap();
+
+	result.total = infos.totalswap * infos.mem_unit;
+	result.free = infos.freeswap * infos.mem_unit;
+	result.used = result.total - result.free;
+
+	if(result.total != 0){
+		result.percent = to!int((result.used / result.total) * 100);
+	}
+
+	File f = File("/proc/vmstat");
+
+	bool in_found = false;
+	bool out_found = false;
+
+	foreach(line; f.byLine()){
+		if(line.startsWith("pswpin")){
+			result.sin = to!int(line.split(" ")[1]) * 4 * 1024;
+			in_found = true;
+		}
+
+		if(line.startsWith("pswpout")){
+			result.sin = to!int(line.split(" ")[1]) * 4 * 1024;
+			out_found = true;
+		}
+
+		if(in_found && out_found){
+			break;
+		}
+	}
+
+	if(!in_found || !out_found){
+		throw new Exception("sin and sout swap stats couldn't be found, they were set to 0");
+	}
+
+	return result;
+}
+
+
+/*
  * Disk
  */
 
@@ -624,4 +674,3 @@ int brightnessToPercent(Bright bri, int value){
 	assert(bri.actual >= 0);
 	return value*100 / bri.max;
 }
-
