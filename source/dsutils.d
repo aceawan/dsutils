@@ -638,6 +638,15 @@ int[] pids(){
 }
 
 /**
+  * Check if a pid exists
+  * Params:
+  * 	pid = pid of the process
+  */
+bool pidExists(int pid){
+	return exists("/proc/" ~ to!string(pid));
+}
+
+/**
  * brightness
  */
 
