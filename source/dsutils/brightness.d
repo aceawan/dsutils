@@ -21,7 +21,7 @@ import core.thread;
 alias Bright = Tuple!(int, "max", int, "actual");
 
 /**
- *Get all the brightness
+ * Get all the brightness
  * Params: folder in /sys/class/backlight/ where dsutils should look
  * Returns: the raw brightness
  */

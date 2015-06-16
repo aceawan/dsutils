@@ -1,6 +1,13 @@
 /**
  * Authors: Quentin Ladeveze, ladeveze.quentin@openmailbox.org
+ *
+ * See_Also: psutil : https://github.com/giampaolo/psutil
+ *
+ * Contributors:
+ *
+ * François Lallemand
  */
+
 module dsutils;
 
 public import dsutils.cpu;
