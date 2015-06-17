@@ -7,22 +7,24 @@ import std.conv;
 import std.algorithm;
 
 struct Process{
-	private int pid;
+	private int _pid;
 
 	public this(int pid){
 		if(pid < 0 || !pidExists(pid)){
 			throw new Exception("wrong pid number");
 		}
 
-		this.pid = pid;
+		this._pid = pid;
 	}
 
-	public int getPid(){
-		return this.pid;
+	@property
+	public int pid(){
+		return this._pid;
 	}
 
+	@property
 	public int ppid(){
-		File f = File("/proc/" ~ to!string(this.pid) ~ "/status");
+		File f = File("/proc/" ~ to!string(this._pid) ~ "/status");
 
 		foreach(line; f.byLine()){
 			if(line.startsWith("PPid")){
@@ -31,5 +33,12 @@ struct Process{
 		}
 
 		throw new Exception("didn't found ppid");
+	}
+
+	@property
+	public string name(){
+		File f = File("/proc/" ~ to!string(this._pid) ~ "/stat");
+
+		return (f.readln().split(" ")[1])[1..$-1];
 	}
 }
