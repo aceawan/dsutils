@@ -6,3 +6,4 @@ __dummy.html
 dsutils
 dub.selections.json
 libdsutils.a
+*.sublime-project
