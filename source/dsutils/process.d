@@ -43,9 +43,9 @@ struct Process{
 	}
 
 	@property
-	public string exe(){
+	public string cmdline(){
 		File f = File("/proc/" ~ to!string(this._pid) ~ "/cmdline");
 
-		return f.readln().split(0x00)[0];
+		return f.readln().split(0x00)[$-2];
 	}
 }
