@@ -25,7 +25,10 @@ a list of partition<br><br>
 </dd>
 <dt><big><a name="DiskUsage"></a>alias <u>DiskUsage</u> = std.typecons.Tuple!(ulong, "total", ulong, "used", ulong, "free", float, "percent").Tuple;
 </big></dt>
-<dd>Informations about the disk usage<br><br>
+<dd>Informations about the disk usage
+<br><br>
+<b>Throws:</b><br>
+an exception if statvfs call failed<br><br>
 
 </dd>
 <dt><big><a name="DiskStats"></a>alias <u>DiskStats</u> = std.typecons.Tuple!(int, "read_count", int, "write_count", int, "read_bytes", int, "write_bytes", int, "read_time", int, "write_time").Tuple;

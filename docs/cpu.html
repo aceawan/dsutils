@@ -14,7 +14,11 @@
 <dt><big><a name="cpuTimes"></a>CPUTimes <u>cpuTimes</u>();
 </big></dt>
 <dd><b>Returns:</b><br>
-the system-wide cpu times.<br><br>
+the system-wide cpu times.
+<br><br>
+<b>Throws:</b><br>
+an exception if the function
+ did not found the cpu times.<br><br>
 
 </dd>
 <dt><big><a name="cpuTimesPerCpu"></a>CPUTimes[] <u>cpuTimesPerCpu</u>();
@@ -35,6 +39,25 @@ number of cpus
 <td>boolean to tell the function if you
  		want to count the physicial or logicals cpus.</td></tr>
 </table><br>
+
+</dd>
+<dt><big><a name="cpuPercent"></a>float <u>cpuPercent</u>(int <i>interval</i> = 0);
+</big></dt>
+<dd>Current system-wide cpu utilization as a percentage.
+<br><br>
+<b>Params:</b><br>
+<table><tr><td>int <i>interval</i></td>
+<td>the time between the two calls to cpuTimes(), if 0
+ 		the methode will use the cached values.</td></tr>
+</table><br>
+<b>Returns:</b><br>
+a float.<br><br>
+
+</dd>
+<dt><big><a name="cpuPercentPerCpu"></a>float[] <u>cpuPercentPerCpu</u>(int <i>interval</i> = 0);
+</big></dt>
+<dd>Current per-cpu cpu utilization as a percentage
+ See the documentation of cpuPercent.<br><br>
 
 </dd>
 </dl>
