@@ -1,4 +1,4 @@
-module dsutils.process;
+ module dsutils.process;
 
 import dsutils.processes;
 import std.stdio;
@@ -11,7 +11,7 @@ struct Process{
 
 	public this(int pid){
 		if(pid < 0 || !pidExists(pid)){
-			throw new Exception("wrong pid number");
+			throw new Exception("pid number not valid");
 		}
 
 		this._pid = pid;
@@ -40,5 +40,12 @@ struct Process{
 		File f = File("/proc/" ~ to!string(this._pid) ~ "/stat");
 
 		return (f.readln().split(" ")[1])[1..$-1];
+	}
+
+	@property
+	public string exe(){
+		File f = File("/proc/" ~ to!string(this._pid) ~ "/cmdline");
+
+		return f.readln().split(0x00)[0];
 	}
 }
