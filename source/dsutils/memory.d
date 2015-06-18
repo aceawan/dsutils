@@ -92,8 +92,18 @@ int memToPercent(Svmem mem, int value){
 /*
  * Swap
  */
+
+/**
+ * This tuple contains information about swap memory
+ */
 alias Swap = Tuple!(long, "total", long, "used", long, "free", int, "percent", long, "sin", long, "sout");
 
+/**
+ * Informations about swap memory
+ * Returns: a Swap tuple.
+ * Throws: an exception if sin and sout have not been found (their values
+ * in the tuple have been set to zero).
+ */
 Swap swapMemory(){
 	import core.sys.linux.sys.sysinfo;
 
@@ -123,7 +133,7 @@ Swap swapMemory(){
 		}
 
 		if(line.startsWith("pswpout")){
-			result.sin = to!int(line.split(" ")[1]) * 4 * 1024;
+			result.sout = to!int(line.split(" ")[1]) * 4 * 1024;
 			out_found = true;
 		}
 

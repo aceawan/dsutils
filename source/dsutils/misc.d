@@ -151,23 +151,25 @@ char[] intarrToCharr(int[] arr){
 /**
  * Return the last boot's time.
  * Returns: a Systime.
+ * Throws: an exception if the boot couldn't
+ * have been read.
  */
-SysTime bootTime(){
+double bootTime(){
 	File f = File("/proc/stat", "r");
 
 	string line;
-	int result = -1;
+	double result = -1;
 
 	while((line = f.readln()) !is null){
-		if(startsWith(line, "btime")){
-			result = to!int(chomp(split(line, " ")[1]));
+		if(line.startsWith("btime")){
+			result = to!double(line.split(" ")[1].strip);
 		}
 	}
 
 	if(result > 0){
-		return SysTime(unixTimeToStdTime(result));
+		return result;
 	}
 	else{
-		throw new Error("Couldn't read boot time");
+		throw new Exception("Couldn't read boot time");
 	}
 }

@@ -47,6 +47,8 @@ struct CPUTimes{
 
 /**
  * Returns: the system-wide cpu times.
+ * Throws: an exception if the function
+ * did not found the cpu times.
  */
 CPUTimes cpuTimes(){
 	import core.sys.posix.unistd;
@@ -56,7 +58,7 @@ CPUTimes cpuTimes(){
 	string line = f.readln();
 
 	if(!startsWith(line, "cpu")){
-		throw new Error("Couldn't read cpu times");
+		throw new Exception("Couldn't read cpu times");
 	}
 
 	auto float_times = map!(a => to!float(a) / (sysconf(_SC_CLK_TCK) ))(split(line, " ")[2..9]);
@@ -135,6 +137,13 @@ int nbCpu(bool logical=true){
 	}
 }
 
+/**
+ * Current system-wide cpu utilization as a percentage.
+ * Params:
+ * 		interval = the time between the two calls to cpuTimes(), if 0
+ * 		the methode will use the cached values.
+ * Returns: a float.
+ */
 float cpuPercent(int interval = 0){
 	CPUTimes before;
 
@@ -159,6 +168,10 @@ float cpuPercent(int interval = 0){
 	return calculate(before, after);
 }
 
+/**
+ * Current per-cpu cpu utilization as a percentage
+ * See the documentation of cpuPercent.
+ */
 float[] cpuPercentPerCpu(int interval = 0){
 	CPUTimes[] before;
 
@@ -189,7 +202,7 @@ float[] cpuPercentPerCpu(int interval = 0){
 	return app.data;
 }
 
-float calculate(CPUTimes t1, CPUTimes t2){
+private float calculate(CPUTimes t1, CPUTimes t2){
 	auto t1_all = t1.sum();
 	auto t1_busy = t1_all - t1.idle;
 

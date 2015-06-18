@@ -73,6 +73,7 @@ Partition[] diskPartitions(bool all = false){
 
 /**
  * Informations about the disk usage
+ * Throws: an exception if statvfs call failed
  */
 alias DiskUsage = Tuple!(ulong, "total", ulong, "used", ulong, "free", float, "percent");
 
@@ -82,7 +83,7 @@ DiskUsage diskUsage(string path){
 	auto buf = statvfs_t();
 
 	if(statvfs(path.ptr, &buf)){
-		throw new Error("Couldn't call statvfs");
+		throw new Exception("Couldn't call statvfs");
 	}
 
 	auto res = DiskUsage();
