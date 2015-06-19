@@ -7,3 +7,4 @@ dsutils
 dub.selections.json
 libdsutils.a
 *.sublime-project
+*.sublime-workspace
