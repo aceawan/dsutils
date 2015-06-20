@@ -163,6 +163,7 @@ double bootTime(){
 	while((line = f.readln()) !is null){
 		if(line.startsWith("btime")){
 			result = to!double(line.split(" ")[1].strip);
+			break;
 		}
 	}
 

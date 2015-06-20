@@ -122,5 +122,34 @@ struct Process{
 		}
 
 		return parent;
-	} 
+	}
+
+	/**
+	 * The current status of the process
+	 * Returns: a value from PROC_STATUS
+	 */
+	@property
+	public string status(){
+		File f = File("/proc/" ~ to!string(this._pid) ~ "/status");
+
+		foreach(line; f.byLine()){
+			if(line.startsWith("State:")){
+				return line.split(" ")[0].split("\t")[1].idup;
+			}
+		}
+
+		throw new Exception("Couldn't found the process status");
+	}
+}
+
+enum PROC_STATUS{
+	RUN = "R",
+	SLEEP = "S",
+	DISK_SLEEP = "D",
+	STOP = "T",
+	TRACING_STOP = "t",
+	ZOMBIE = "Z",
+	DEAD = "X",
+	WAKE_KILL = "K",
+	WAKING = "W"
 }

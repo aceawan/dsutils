@@ -37,6 +37,7 @@ Partition[] diskPartitions(bool all = false){
 	foreach(line; f.byLine()){
 		if(!startsWith(line, "nodev")){
 			dev_fs.put(line.strip.idup);
+			break;
 		}
 	}
 
@@ -109,8 +110,10 @@ DiskStats diskIoCounters(){
 
 	foreach(line; f.byLine()){
 		line = line.squeeze(" ");
-		if(line != "" && !startsWith(line, "major") && isNumber(line[$-1]))
+		if(line != "" && !startsWith(line, "major") && isNumber(line[$-1])){
 			parts.put(line.split(" ")[$-1].idup);
+			break;
+		}
 	}
 
 	auto result = DiskStats();
