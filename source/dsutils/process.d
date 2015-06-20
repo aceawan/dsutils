@@ -99,4 +99,28 @@ struct Process{
 
 		return (uptime / sysconf(_SC_CLK_TCK)) + bootTime();
 	}
+
+	/**
+	 * The parent process as a Process struct.
+	 * Checks if the pid of the parent process has been reused and
+	 * returns null if it is true.
+	 * Returns: a Process or null
+	 */
+	@property
+	public Process parent(){
+		Process parent;
+
+		try{
+			parent = Process(this.ppid);
+
+			if(parent.createTime < this.createTime){
+				return parent;
+			}
+		}
+		catch(Exception e){
+			return parent;
+		}
+
+		return parent;
+	} 
 }
