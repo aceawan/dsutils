@@ -72,9 +72,7 @@ struct Process{
 	 */
 	@property
 	public string exe(){
-		string result;
-
-		result = readLink("/proc/" ~ to!string(this._pid) ~ "/exe");
+		string result = readLink("/proc/" ~ to!string(this._pid) ~ "/exe");
 
 		return result;
 	}
@@ -139,6 +137,20 @@ struct Process{
 		}
 
 		throw new Exception("Couldn't found the process status");
+	}
+
+	/**
+	 * absolute path of the current working directory
+	 * of the process.
+	 * Returns: a string containing a path
+	 * Throws: a FileException if you don't have the rights
+	 * on the /proc/{pid}/cwd file
+	 */
+	@property
+	public string cwd(){
+		string result = readLink("/proc/" ~ to!string(this._pid) ~ "/cwd");
+
+		return result;
 	}
 }
 
