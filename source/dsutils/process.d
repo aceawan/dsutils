@@ -4,6 +4,7 @@ import std.stdio;
 import std.file;
 import std.string;
 import std.conv;
+import std.typecons;
 import std.algorithm;
 
 struct Process{
@@ -152,6 +153,25 @@ struct Process{
 
 		return result;
 	}
+
+	@property
+	public Ids uids(){
+		File f = File("/proc/" ~ to!string(this._pid) ~ "/status");
+
+		foreach(line; f.byLine()){
+			if(line.startsWith("Uid:")){
+				Ids result;
+
+				result.reality = to!int(line.split()[1]);
+				result.effective = to!int(line.split()[2]);
+				result.saved = to!int(line.split()[3]);
+
+				return result;
+			}
+		}
+
+		throw new Exception("Couldn't found uids");
+	}
 }
 
 enum PROC_STATUS{
@@ -165,3 +185,5 @@ enum PROC_STATUS{
 	WAKE_KILL = "K",
 	WAKING = "W"
 }
+
+alias Ids = Tuple!(int, "reality", int, "effective", int, "saved");
