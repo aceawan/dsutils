@@ -154,6 +154,17 @@ struct Process{
 		return result;
 	}
 
+	/**
+	 * username of the process owner
+	 * Returns: a username
+	 */
+	@property 
+	public string username(){
+		import core.sys.posix.pwd;
+
+		return to!string(getpwuid(this.uids.reality).pw_name);
+	}
+
 	@property
 	public Ids uids(){
 		File f = File("/proc/" ~ to!string(this._pid) ~ "/status");
