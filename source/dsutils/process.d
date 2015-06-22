@@ -183,6 +183,25 @@ struct Process{
 
 		throw new Exception("Couldn't found uids");
 	}
+
+	@property
+	public Ids gids(){
+		File f = File("/proc/" ~ to!string(this._pid) ~ "/status");
+
+		foreach(line; f.byLine()){
+			if(line.startsWith("Gid:")){
+				Ids result;
+
+				result.reality = to!int(line.split()[1]);
+				result.effective = to!int(line.split()[2]);
+				result.saved = to!int(line.split()[3]);
+
+				return result;
+			}
+		}
+
+		throw new Exception("Couldn't found gids");
+	}
 }
 
 enum PROC_STATUS{
