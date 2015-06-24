@@ -202,6 +202,20 @@ struct Process{
 
 		throw new Exception("Couldn't found gids");
 	}
+
+	@property
+	public int nice(){
+		import core.sys.posix.sys.resource;
+
+		return getpriority(PRIO_PROCESS, this._pid);
+	}
+
+	@property
+	public void nice(int value){
+		import core.sys.posix.sys.resource;
+
+		setpriority(PRIO_PROCESS, this._pid, value);
+	}
 }
 
 enum PROC_STATUS{
