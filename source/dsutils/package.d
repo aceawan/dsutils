@@ -15,5 +15,6 @@ public import dsutils.memory;
 public import dsutils.misc;
 public import dsutils.brightness;
 public import dsutils.disks;
+public import dsutils.network;
 public import dsutils.processes;
 public import dsutils.process;
