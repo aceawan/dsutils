@@ -1,10 +1,15 @@
 module dsutils.network;
 
 import std.typecons;
+import std.algorithm;
+import std.range;
 import std.file;
 import std.conv;
+import std.socket;
 import std.string;
 import std.stdio;
+
+import dsutils.processes;
 
 alias NetIoStats = Tuple!(int, "bytes_sent", int, "bytes_recvd", int, "packets_sent", int, "packets_recvd", int, "errin", int, "errout", int, "dropin", int, "dropout");
 
@@ -50,4 +55,86 @@ NetIoStats[string] netIoCountersPerNic(){
 	}
 
 	return result;
+}
+
+alias ConnType = Tuple!(string, AddressFamily, SocketType);
+
+public class Connections{
+	ConnType[][string] tmap;
+
+	this(){
+		auto tcp4 = tuple("tcp", AddressFamily.INET, SocketType.STREAM);
+		auto tcp6 = tuple("tcp6", AddressFamily.INET6, SocketType.STREAM);
+		auto udp4 = tuple("udp", AddressFamily.INET, SocketType.DGRAM);
+		auto udp6 = tuple("udp6", AddressFamily.INET6, SocketType.DGRAM);
+		auto unix = tuple("unix", AddressFamily.UNIX, SocketType.STREAM);
+
+		this.tmap = [
+			"all": [tcp4, tcp6, udp4, udp6, unix],
+			"tcp": [tcp4, tcp6],
+			"tcp4": [tcp4],
+			"tcp6": [tcp6],
+			"udp": [udp4, udp6],
+			"udp4": [udp4],
+			"udp6": [udp6],
+			"unix": [unix],
+			"inet": [udp4, tcp4, udp6, tcp6],
+			"inet4": [udp4, tcp4],
+			"inet6": [udp6, tcp6]
+		];
+	}
+
+	auto getProcInodes(int pid){
+		int[][string] inodes;
+		try{
+			foreach(string fd; dirEntries("/proc/" ~ pid.to!string ~ "/fd", SpanMode.depth)){
+				string inode;
+				try{
+					inode = readLink(fd.to!string);
+				}
+				catch(FileException fe){}
+
+				if(inode.startsWith("socket:[")){
+					inode = inode[8..$-1];
+					inodes[inode] ~= fd.split("/")[$-1].to!int;
+				}
+			}
+		}
+		catch(FileException fe){
+		}
+
+		return inodes;
+	}
+
+	auto getAllInodes(){
+		int[][string] inodes;
+
+		foreach(int pid; pids()){
+			int[][string] procInodes = getProcInodes(pid);
+
+			foreach(k, v; procInodes){
+				auto p = (k in inodes);
+
+				if(p !is null){
+					inodes[k] ~= uniq(inodes[k] ~ procInodes[k]).array;
+				}
+				else{
+					inodes[k] = procInodes[k];
+				}
+			}
+
+			writeln("noot : " ~ pid.to!string);
+		}
+
+		writeln("nootnoot");
+
+		writeln(inodes);
+	}
+}
+
+enum CONN_STATUS {
+	CONN_NONE,
+	CONN_ESTABLISHED,
+	CONN_SYN_SENT,
+	CONN_SYN_RECV
 }
