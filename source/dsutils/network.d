@@ -4,10 +4,14 @@ import std.typecons;
 import std.algorithm;
 import std.range;
 import std.file;
+import std.format;
 import std.conv;
 import std.socket;
 import std.string;
 import std.stdio;
+import std.process;
+import std.system;
+import std.array;
 
 import dsutils.processes;
 
@@ -84,7 +88,7 @@ public class Connections{
 		];
 	}
 
-	auto getProcInodes(int pid){
+	int[][string] getProcInodes(int pid){
 		int[][string] inodes;
 		try{
 			foreach(string fd; dirEntries("/proc/" ~ pid.to!string ~ "/fd", SpanMode.depth)){
@@ -106,29 +110,55 @@ public class Connections{
 		return inodes;
 	}
 
-	auto getAllInodes(){
+	int[][string] getAllInodes(){
 		int[][string] inodes;
 
 		foreach(int pid; pids()){
-			int[][string] procInodes = getProcInodes(pid);
+			if(thisProcessID != pid){
+				int[][string] procInodes = getProcInodes(pid);
 
-			foreach(k, v; procInodes){
-				auto p = (k in inodes);
+				foreach(k, v; procInodes){
+					auto p = (k in inodes);
 
-				if(p !is null){
-					inodes[k] ~= uniq(inodes[k] ~ procInodes[k]).array;
+					if(p !is null){
+						inodes[k] ~= uniq(inodes[k] ~ procInodes[k]).array;
+					}
+					else{
+						inodes[k] = procInodes[k];
+					}
 				}
-				else{
-					inodes[k] = procInodes[k];
-				}
+
 			}
-
-			writeln("noot : " ~ pid.to!string);
 		}
 
-		writeln("nootnoot");
+		return inodes;
+	}
 
-		writeln(inodes);
+	auto decodeAddress(string address, AddressFamily family){
+		string[] splittedAddr = split(address, ":");
+
+		writeln(splittedAddr);
+
+		auto rawPort = splittedAddr[1];
+
+		int strPort = parse!int(rawPort, 16);
+
+		string rawAddr;
+
+		int[] addr_int;
+
+		if(family == AddressFamily.INET){
+			if(endian == Endian.littleEndian){
+				rawAddr = splittedAddr[0].retro.text;
+			}
+			else{
+				rawAddr = splittedAddr[0];
+			}
+
+			addr_int = rawAddr.chunks(2).map!(v => to!int(v.save().to!string, 16)).array;
+		}
+
+		return addr_int.map!(i => i.to!string).array.join(".") ~ ":" ~ strPort.to!string;
 	}
 }
 
