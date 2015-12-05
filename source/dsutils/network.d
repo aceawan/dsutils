@@ -155,7 +155,7 @@ public class Connections{
 				rawAddr = splittedAddr[0];
 			}
 
-			addr_int = rawAddr.chunks(2).map!(v => to!int(v.save().to!string, 16)).array;
+			addr_int = rawAddr.chunks(2).map!(v => to!int(v.to!string, 16)).array;
 		}
 
 		return addr_int.map!(i => i.to!string).array.join(".") ~ ":" ~ strPort.to!string;
