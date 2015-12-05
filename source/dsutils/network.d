@@ -12,6 +12,7 @@ import std.stdio;
 import std.process;
 import std.system;
 import std.array;
+import std.uni;
 
 import dsutils.processes;
 
@@ -145,8 +146,6 @@ public class Connections{
 
 		string rawAddr;
 
-		int[] addr_int;
-
 		if(family == AddressFamily.INET){
 			if(endian == Endian.littleEndian){
 				rawAddr = splittedAddr[0].retro.text;
@@ -155,10 +154,19 @@ public class Connections{
 				rawAddr = splittedAddr[0];
 			}
 
-			addr_int = rawAddr.chunks(2).map!(v => to!int(v.to!string, 16)).array;
+			int[] addr_int = rawAddr.chunks(2).map!(v => to!int(v.to!string, 16)).array;
+			return addr_int.map!(i => i.to!string).array.join(".") ~ ":" ~ strPort.to!string;
 		}
+		else{
+			if(endian == Endian.littleEndian){
+				rawAddr = splittedAddr[0].retro.text;
+			}
+			else{
+				rawAddr = splittedAddr[0];
+			}
 
-		return addr_int.map!(i => i.to!string).array.join(".") ~ ":" ~ strPort.to!string;
+			return (rawAddr.chunks(4).join(":")).map!(c => toLower(c)).array.to!string ~ ":" ~ strPort.to!string;
+		}
 	}
 }
 
